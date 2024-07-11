@@ -2431,9 +2431,53 @@ struct CPedHealthDataNode
 	}
 };
 
-struct CPedMovementGroupDataNode
+struct CPedMovementGroupDataNode : GenericSerializeDataNode<CPedMovementGroupDataNode>
 {
-	CPedMovementGroupNodeData data;
+    CPedMovementGroupNodeData data;
+
+    template<typename Serializer>
+    bool Serialize(Serializer& s)
+    {
+        s.Serialize(32, data.motionGroup);
+        s.Serialize(data.defaultActionMode);
+        
+        if (!data.defaultActionMode)
+        {
+            s.Serialize(3, data.moveBlendType);
+            s.Serialize(5, data.moveBlendState);
+
+            s.Serialize(32, data.overiddenWeaponGroup);
+            s.Serialize(data.isCrouching);
+
+            s.Serialize(data.isStealthy);
+            s.Serialize(data.isStrafing);
+            s.Serialize(data.isRagdolling);
+
+            s.Serialize(data.isRagdollConstraintAnkleActive);
+            s.Serialize(data.isRagdollConstraintWristActive);
+
+            s.Serialize(data.hasMotionInVehiclePitch);
+            if (data.hasMotionInVehiclePitch)
+            {
+                s.SerializeSigned(8, 1.0f, data.motionInVehiclePitch);
+            }
+
+            s.Serialize(data.hasOverridenStrafeGroup);
+            if (data.hasOverridenStrafeGroup)
+            {
+                s.Serialize(32, data.overridenStrafeGroup);
+            }
+        }
+        else
+        {
+            data.isStealthy = false;
+            data.isStrafing = false;
+            data.isRagdolling = false;
+        }
+
+        return true;
+    }
+};
 
 	bool Parse(SyncParseState& state)
 	{

@@ -638,9 +638,27 @@ struct CBoatGameStateNodeData
 
 struct CPedMovementGroupNodeData
 {
+    uint32_t motionGroup;
+    bool defaultActionMode;
+    
+	uint8_t moveBlendType;
+    int moveBlendState;
+    
+	uint32_t overiddenWeaponGroup;
+    bool isCrouching;
+    
 	bool isStealthy;
-	bool isStrafing;
-	bool isRagdolling;
+    bool isStrafing;
+    bool isRagdolling;
+    
+	bool isRagdollConstraintAnkleActive;
+    bool isRagdollConstraintWristActive;
+    
+	bool hasMotionInVehiclePitch;
+    float motionInVehiclePitch;
+    
+	bool hasOverridenStrafeGroup;
+    uint32_t overridenStrafeGroup;
 };
 
 enum ePopType
