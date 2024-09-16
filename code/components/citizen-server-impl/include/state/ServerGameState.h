@@ -395,12 +395,44 @@ struct CVehicleAppearanceNodeData
 
 struct CVehicleHealthNodeData
 {
+	bool isWrecked;
+	bool isWreckedByExplosion;
+
+	bool engineDamaged;
 	int engineHealth;
+
+	bool petrolTankDamaged;
 	int petrolTankHealth;
+	
 	bool tyresFine;
+	bool suspensionFine;
+	int totalWheels;
+	
+	bool hasTyreWearRate;
+	float tyreWearRate[10];
+	bool tyreDamaged;
+	bool tyreDestroyed;
+	bool tyreBrokenOff;
+	bool tyreFire;
 	int tyreStatus[1 << 4];
-	int bodyHealth;
+	
+	bool suspensionDamaged;
+	float suspensionHealth[10];
+	
+	bool hasMaxHealth;
 	int health;
+	bool bodyHealthSameAsHealth;
+	int bodyHealth;
+	
+	bool hasDamagedEntity;
+	uint16_t weaponDamageEntity;
+	int lastDamageSource;
+	
+	int extinguishFireCount;
+	int totalRepairs;
+	
+	bool hasLastDamagedMaterial;
+	int lastDamagedMaterialId;
 };
 
 struct CVehicleGameStateNodeData
