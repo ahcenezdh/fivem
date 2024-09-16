@@ -104,6 +104,13 @@ std::shared_ptr<sync::SyncTreeBase> MakeAutomobile(uint32_t model, float posX, f
 		cdn.allDoorsClosed = true;
 	});
 
+	SetupNode(tree, [](sync::CVehicleHealthDataNode& cdn)
+	{
+		cdn.data.health = 1000; // Default health of a vehicle
+		cdn.data.weaponDamageEntity = 0;
+		cdn.data.lastDamageSource = 0;
+	});
+
 	SetupPosition<sync::CSectorDataNode, sync::CSectorPositionDataNode>(tree, posX, posY, posZ);
 	SetupHeading(tree, heading);
 

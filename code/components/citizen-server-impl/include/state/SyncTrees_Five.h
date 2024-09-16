@@ -988,125 +988,122 @@ struct CVehicleDamageStatusDataNode
 
 struct CVehicleComponentReservationDataNode { };
 
-struct CVehicleHealthDataNode
+struct CVehicleHealthDataNode : public GenericSerializeDataNode<CVehicleHealthDataNode>
 {
-	CVehicleHealthNodeData data;
+    CVehicleHealthNodeData data;
+    
+    template<typename Serializer>
+    bool Serialize(Serializer& s)
+    {
+        s.Serialize(data.isWrecked);
+        s.Serialize(data.isWreckedByExplosion);
+        s.Serialize(data.engineDamaged);
+        s.Serialize(data.petrolTankDamaged);
 
-	bool Parse(SyncParseState& state)
-	{
-		bool unk0 = state.buffer.ReadBit();
-		bool unk1 = state.buffer.ReadBit();
-		bool engineDamaged = state.buffer.ReadBit();
-		bool petrolTankDamaged = state.buffer.ReadBit();
+        if (data.engineDamaged)
+        {
+            s.Serialize(19, data.engineHealth);
+        }
+        else
+        {
+            data.engineHealth = 1000;
+        }
 
-		if (engineDamaged)
-		{
-			auto engineHealth = state.buffer.ReadSigned<int>(19);
-			data.engineHealth = engineHealth;
-		}
-		else
-		{
-			data.engineHealth = 1000;
-		}
+        if (data.petrolTankDamaged)
+        {
+            s.Serialize(19, data.petrolTankHealth);
+        }
+        else
+        {
+            data.petrolTankHealth = 1000;
+        }
 
-		if (petrolTankDamaged)
-		{
-			auto petrolTankHealth = state.buffer.ReadSigned<int>(19);
-			data.petrolTankHealth = petrolTankHealth;
-		}
-		else
-		{
-			data.petrolTankHealth = 1000;
-		}
+        s.Serialize(data.tyresFine);
+        s.Serialize(data.suspensionFine);
 
-		bool tyresFine = state.buffer.ReadBit();
-		data.tyresFine = tyresFine;
+        if (!data.tyresFine || !data.suspensionFine)
+        {
+            s.Serialize(4, data.totalWheels);
 
-		bool unk7 = state.buffer.ReadBit();
+            if (!data.tyresFine)
+            {
+                for (int i = 0; i < data.totalWheels; i++)
+                {
+                    if (Is2060())
+                    {
+                        s.Serialize(data.hasTyreWearRate);
+                        if (data.hasTyreWearRate)
+                        {
+                            s.Serialize(8, data.tyreWearRate);
+                        }
+                    }
+                	
+                    s.Serialize(data.tyreDamaged);
+                    s.Serialize(data.tyreDestroyed);
+                    s.Serialize(data.tyreBrokenOff);
+                    s.Serialize(data.tyreFire);
+                    data.tyreStatus[i] = data.tyreDestroyed ? 2 : (data.tyreDamaged ? 1 : 0);
+                }
+            }
 
-		if (!tyresFine || !unk7)
-		{
-			int totalWheels = state.buffer.Read<int>(4);
+            if (!data.suspensionFine)
+            {
+                for (int i = 0; i < data.totalWheels; i++)
+                {
+                    s.Serialize(data.suspensionDamaged);
+                    if (data.suspensionDamaged)
+                    {
+                        s.SerializeSigned(10, 1000.0f, data.suspensionHealth[i]);
+                    }
+                	else
+                	{
+                		data.suspensionHealth[i] = 1000.0f;
+                	}
+                }
+            }
+        }
+    	
+        s.Serialize(data.hasMaxHealth);
 
-			if (!tyresFine)
-			{
-				for (int i = 0; i < totalWheels; i++)
-				{
-					// open wheel heat?
-					if (Is2060())
-					{
-						if (state.buffer.ReadBit())
-						{
-							state.buffer.Read<int>(8);
-						}
-					}
+        if (!data.hasMaxHealth)
+        {
+            s.Serialize(19, data.health);
+        }
+        else
+        {
+            data.health = 1000;
+        }
 
-					bool bursted = state.buffer.ReadBit();
-					bool onRim = state.buffer.ReadBit();
-					auto unk11 = state.buffer.ReadBit();
-					auto unk12 = state.buffer.ReadBit();
+        s.Serialize(data.bodyHealthSameAsHealth);
 
-					data.tyreStatus[i] = onRim ? 2 : (bursted ? 1 : 0);
-				}
-			}
+        if (!data.bodyHealthSameAsHealth)
+        {
+            s.Serialize(19, data.bodyHealth);
+        }
+        else
+        {
+            data.bodyHealth = 1000;
+        }
+    	
+        s.Serialize(data.hasDamagedEntity);
 
-			if (!unk7)
-			{
-				for (int i = 0; i < totalWheels; i++)
-				{
-					bool unk13 = state.buffer.ReadBit();
+        if (data.hasDamagedEntity)
+        {
+            s.Serialize(13, data.weaponDamageEntity);
+            s.Serialize(32, data.lastDamageSource);
+        }
+    	
+        s.Serialize(4, data.extinguishFireCount);
+        s.Serialize(4, data.totalRepairs);
+        s.Serialize(data.hasLastDamagedMaterial);
 
-					if (unk13)
-					{
-						int unk14 = state.buffer.Read<int>(10); // Maximum 10000.0
-					}
-				}
-			}
-		}
+        if (data.hasLastDamagedMaterial)
+        {
+            s.Serialize(64, data.lastDamagedMaterialId);
+        }
 
-		bool isFine = state.buffer.ReadBit();
-
-		if (!isFine)
-		{
-			auto health = state.buffer.ReadSigned<int>(19);
-			data.health = health;
-		}
-		else
-		{
-			data.health = 1000;
-		}
-
-		bool bodyHealthFine = state.buffer.ReadBit();
-
-		if (!bodyHealthFine)
-		{
-			auto bodyHealth = state.buffer.ReadSigned<int>(19);
-			data.bodyHealth = bodyHealth;
-		}
-		else
-		{
-			data.bodyHealth = 1000;
-		}
-
-		bool unk18 = state.buffer.ReadBit();
-
-		if (unk18)
-		{
-			auto unk19 = state.buffer.Read<uint16_t>(13); // damage entity
-			int lastDamageSource = state.buffer.Read<int>(32);
-		}
-
-		int unk21 = state.buffer.Read<int>(4);
-		int totalRepairs = state.buffer.Read<int>(4); // maximum 15
-		auto unk23 = state.buffer.ReadBit();
-
-		if (unk23)
-		{
-			int unk24 = state.buffer.Read<int>(64);
-		}
-
-		return true;
-	}
+        return true;
+    }
 };
 
 struct CVehicleTaskDataNode { };
