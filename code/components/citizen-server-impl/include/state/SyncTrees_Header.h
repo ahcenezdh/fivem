@@ -266,8 +266,7 @@ public:
 	bool Unparse(SyncUnparseState& state)
 	{
 		bool should = false;
-
-		// TODO: back out writes if we didn't write any child
+		size_t startBit = state.buffer.GetCurrentBit();
 		if (shouldWrite(state, TIds::GetIds()))
 		{
 			Foreacher<decltype(children)>::for_each_in_tuple(children, [&](auto& child)
@@ -276,6 +275,12 @@ public:
 
 				should = should || thisShould;
 			});
+
+			// If we didn't write any child, back out the writes
+			if (!should)
+			{
+				state.buffer.SetCurrentBit(startBit);
+			}
 		}
 
 		return should;

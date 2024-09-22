@@ -868,6 +868,27 @@ static auto GetNextTrain(fx::ServerGameState* sgs, const fx::sync::SyncEntityPtr
 };
 #endif
 
+inline bool IsVehicleType(sync::NetObjEntityType type)
+{
+	switch (type)
+	{
+		case sync::NetObjEntityType::Automobile:
+		case sync::NetObjEntityType::Bike:
+		case sync::NetObjEntityType::Boat:
+		case sync::NetObjEntityType::Heli:
+		case sync::NetObjEntityType::Plane:
+		case sync::NetObjEntityType::Submarine:
+		case sync::NetObjEntityType::Trailer:
+		case sync::NetObjEntityType::Train:
+#ifdef STATE_RDR3
+		case sync::NetObjEntityType::DraftVeh:
+#endif
+			return true;
+		default:
+			return false;
+	}
+}
+
 void ServerGameState::Tick(fx::ServerInstanceBase* instance)
 {
 	// #TOOD1SBIG: limit tick rate divisor somewhat more sanely (currently it's 'only' 12.5ms as tick rate was upped from 30fps to 50fps)
@@ -973,17 +994,7 @@ void ServerGameState::Tick(fx::ServerInstanceBase* instance)
 
 			sync::CVehicleGameStateNodeData* vehicleData = nullptr;
 
-			if (entity->type == sync::NetObjEntityType::Automobile ||
-				entity->type == sync::NetObjEntityType::Bike ||
-				entity->type == sync::NetObjEntityType::Boat ||
-				entity->type == sync::NetObjEntityType::Heli ||
-				entity->type == sync::NetObjEntityType::Plane ||
-				entity->type == sync::NetObjEntityType::Submarine ||
-				entity->type == sync::NetObjEntityType::Trailer ||
-#ifdef STATE_RDR3
-				entity->type == sync::NetObjEntityType::DraftVeh ||
-#endif
-				entity->type == sync::NetObjEntityType::Train)
+			if (IsVehicleType(entity->type))
 			{
 				vehicleData = entity->syncTree->GetVehicleGameState();
 			}
@@ -1130,17 +1141,7 @@ void ServerGameState::Tick(fx::ServerInstanceBase* instance)
 						// #TODO1SBIG: check if the player is not acked when bigmode is made unreliable
 					}
 				}
-				else if (entity->type == sync::NetObjEntityType::Automobile ||
-					entity->type == sync::NetObjEntityType::Bike ||
-					entity->type == sync::NetObjEntityType::Boat ||
-					entity->type == sync::NetObjEntityType::Heli ||
-					entity->type == sync::NetObjEntityType::Plane ||
-					entity->type == sync::NetObjEntityType::Submarine ||
-					entity->type == sync::NetObjEntityType::Trailer ||
-#ifdef STATE_RDR3
-					entity->type == sync::NetObjEntityType::DraftVeh ||
-#endif
-					entity->type == sync::NetObjEntityType::Train)
+				else if (IsVehicleType(entity->type))
 				{
 					if (vehicleData)
 					{
@@ -6849,12 +6850,7 @@ inline bool RequestControlHandler(fx::ServerGameState* sgs, const fx::ClientShar
 
 	if constexpr (Mode == RequestControlFilterMode::FilterPlayer || Mode == RequestControlFilterMode::FilterPlayerSettled || Mode == RequestControlFilterMode::FilterPlayerPlusNonPlayerSettled)
 	{
-		// #TODO: turn this into a 'is this type a vehicle' helper
-		if (entity->type == sync::NetObjEntityType::Automobile || entity->type == sync::NetObjEntityType::Bike || entity->type == sync::NetObjEntityType::Boat || entity->type == sync::NetObjEntityType::Heli || entity->type == sync::NetObjEntityType::Plane || entity->type == sync::NetObjEntityType::Submarine || entity->type == sync::NetObjEntityType::Trailer ||
-#ifdef STATE_RDR3
-			entity->type == sync::NetObjEntityType::DraftVeh ||
-#endif
-			entity->type == sync::NetObjEntityType::Train)
+		if (IsVehicleType(entity->type))
 		{
 			if (auto syncTree = entity->syncTree)
 			{
